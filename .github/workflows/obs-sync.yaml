@@ -23,7 +23,7 @@ jobs:
       GHCR_CHART: oci://ghcr.io/e-minguez/charts/hello-world-helm-chart
     steps:
       - name: Install tooling
-        run: zypper -n in helm osc grep gawk tar
+        run: zypper -n in helm osc git grep gawk tar
 
       - name: Configure osc credentials
         env:
