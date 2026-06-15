@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: registry.opensuse.org/opensuse/nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+resources: {}
