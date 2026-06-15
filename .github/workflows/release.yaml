@@ -37,3 +37,10 @@ jobs:
         run: |
           owner_lc=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           helm push hello-world-helm-chart-*.tgz "oci://ghcr.io/${owner_lc}/charts"
+
+  mirror-to-obs:
+    needs: publish
+    uses: ./.github/workflows/obs-sync.yaml
+    secrets:
+      OBS_USER: ${{ secrets.OBS_USER }}
+      OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}

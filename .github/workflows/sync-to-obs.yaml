@@ -1,0 +1,13 @@
+name: Sync Helm chart to OBS (scheduled)
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  call-obs-sync:
+    uses: ./.github/workflows/obs-sync.yaml
+    secrets:
+      OBS_USER: ${{ secrets.OBS_USER }}
+      OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}

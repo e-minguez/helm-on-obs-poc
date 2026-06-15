@@ -1,0 +1,92 @@
+name: OBS sync (reusable)
+
+on:
+  workflow_call:
+    secrets:
+      OBS_USER:
+        required: true
+      OBS_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    container: opensuse/tumbleweed:latest
+    env:
+      OBS_PROJECT: home:eminguez:charts
+      OBS_PACKAGE: hello-world-chart
+      OBS_TAG_PATH: home/eminguez/charts/hello-world-chart
+      GHCR_CHART: oci://ghcr.io/e-minguez/charts/hello-world-helm-chart
+    steps:
+      - name: Install tooling
+        run: zypper -n in helm osc grep gawk tar
+
+      - name: Configure osc credentials
+        env:
+          OBS_USER: ${{ secrets.OBS_USER }}
+          OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}
+        run: |
+          mkdir -p ~/.config/osc
+          umask 077
+          cat > ~/.config/osc/oscrc <<EOF
+          [general]
+          apiurl = https://api.opensuse.org
+          [https://api.opensuse.org]
+          user = ${OBS_USER}
+          pass = ${OBS_PASSWORD}
+          EOF
+
+      - name: Log in to GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ACTOR: ${{ github.actor }}
+        run: echo "$GH_TOKEN" | helm registry login ghcr.io -u "$GH_ACTOR" --password-stdin
+
+      - name: Check out OBS package
+        run: osc co "$OBS_PROJECT" "$OBS_PACKAGE"
+
+      - name: Resolve upstream version
+        id: upstream
+        run: |
+          ver=$(helm show chart "$GHCR_CHART" | awk '/^version:/ {print $2; exit}')
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "Upstream: $ver"
+
+      - name: Sync if changed
+        env:
+          UPSTREAM_VER: ${{ steps.upstream.outputs.version }}
+        run: |
+          cd "$OBS_PROJECT/$OBS_PACKAGE"
+
+          if [ -f Chart.yaml ]; then
+            current=$(awk '/^version:/ {print $2; exit}' Chart.yaml)
+          else
+            current="none"
+          fi
+
+          if [ "$current" = "$UPSTREAM_VER" ]; then
+            echo "OBS already at $current, nothing to do."
+            exit 0
+          fi
+          echo "OBS update: $current -> $UPSTREAM_VER"
+
+          osc rm --force ./* 2>/dev/null || true
+          rm -rf ./*
+
+          helm pull "$GHCR_CHART" --version "$UPSTREAM_VER" --untar
+          src=hello-world-helm-chart
+
+          {
+            echo "#!BuildTag: ${OBS_TAG_PATH}:latest ${OBS_TAG_PATH}:${UPSTREAM_VER}"
+            cat "$src/Chart.yaml"
+          } > Chart.yaml
+
+          tar -czf chart-assets.tar.gz -C "$src" values.yaml templates .helmignore
+          rm -rf "$src"
+
+          osc add Chart.yaml chart-assets.tar.gz
+          osc commit -m "Sync to ${UPSTREAM_VER} from ghcr.io/e-minguez/charts"
