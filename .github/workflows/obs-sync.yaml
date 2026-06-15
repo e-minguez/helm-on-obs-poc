@@ -85,7 +85,7 @@ jobs:
             cat "$src/Chart.yaml"
           } > Chart.yaml
 
-          tar -czf chart-assets.tar.gz -C "$src" values.yaml templates .helmignore
+          tar -czf chart-assets.tar.gz -C "$src" values.yaml templates
           rm -rf "$src"
 
           osc add Chart.yaml chart-assets.tar.gz
