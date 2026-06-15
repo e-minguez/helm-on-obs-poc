@@ -19,7 +19,6 @@ jobs:
     env:
       OBS_PROJECT: home:eminguez:charts
       OBS_PACKAGE: hello-world-chart
-      OBS_TAG_PATH: home/eminguez/charts/hello-world-chart
       GHCR_CHART: oci://ghcr.io/e-minguez/charts/hello-world-helm-chart
     steps:
       - name: Install tooling
@@ -81,7 +80,7 @@ jobs:
           src=hello-world-helm-chart
 
           {
-            echo "#!BuildTag: ${OBS_TAG_PATH}:latest ${OBS_TAG_PATH}:${UPSTREAM_VER}"
+            echo "#!BuildTag: ${OBS_PACKAGE}:latest ${OBS_PACKAGE}:${UPSTREAM_VER}"
             cat "$src/Chart.yaml"
           } > Chart.yaml
 
