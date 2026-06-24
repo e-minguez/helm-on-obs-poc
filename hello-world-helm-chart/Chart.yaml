@@ -1,6 +1,6 @@
 apiVersion: v2
 name: hello-world-helm-chart
-description: Basic Helm chart deploying openSUSE nginx
+description: Helm chart deploying a Go hello-world web server
 type: application
-version: 0.1.0
-appVersion: "tumbleweed"
+version: 0.2.0
+appVersion: "0.1.0"

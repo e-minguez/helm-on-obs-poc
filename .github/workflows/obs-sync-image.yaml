@@ -1,0 +1,78 @@
+name: OBS image sync (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      OBS_USER:
+        required: true
+      OBS_PASSWORD:
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    container: opensuse/tumbleweed:latest
+    env:
+      OBS_PROJECT: home:eminguez:containers
+      OBS_PACKAGE: hello-world-go
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Install tooling
+        run: zypper -n in --no-recommends osc git tar
+
+      - name: Configure osc credentials
+        env:
+          OBS_USER: ${{ secrets.OBS_USER }}
+          OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}
+        run: |
+          mkdir -p ~/.config/osc
+          umask 077
+          cat > ~/.config/osc/oscrc <<EOF
+          [general]
+          apiurl = https://api.opensuse.org
+          [https://api.opensuse.org]
+          user = ${OBS_USER}
+          pass = ${OBS_PASSWORD}
+          EOF
+
+      - name: Check out OBS package
+        run: osc co "$OBS_PROJECT" "$OBS_PACKAGE"
+
+      - name: Sync if changed
+        env:
+          VER: ${{ inputs.version }}
+        run: |
+          cd "$OBS_PROJECT/$OBS_PACKAGE"
+
+          if [ -f Dockerfile ]; then
+            current=$(grep '^#!BuildTag:' Dockerfile | awk '{print $NF}' | cut -d: -f2)
+          else
+            current="none"
+          fi
+
+          if [ "$current" = "$VER" ]; then
+            echo "OBS already at $current, nothing to do."
+            exit 0
+          fi
+          echo "OBS update: $current -> $VER"
+
+          osc rm --force ./* 2>/dev/null || true
+          rm -rf ./*
+
+          {
+            echo "#!BuildTag: ${OBS_PACKAGE}:latest ${OBS_PACKAGE}:${VER}"
+            tail -n +2 "$GITHUB_WORKSPACE/Containerfile"
+          } > Dockerfile
+
+          cp -r "$GITHUB_WORKSPACE/app" ./app
+
+          osc add Dockerfile app
+          osc commit -m "Sync image ${VER}"

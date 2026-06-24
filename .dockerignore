@@ -1,0 +1,5 @@
+hello-world-helm-chart/
+.github/
+*.md
+.git
+.claude/

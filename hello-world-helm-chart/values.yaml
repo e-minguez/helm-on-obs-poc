@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: registry.opensuse.org/opensuse/nginx
+  repository: ghcr.io/e-minguez/hello-world-go
   tag: latest
   pullPolicy: IfNotPresent
 
