@@ -85,11 +85,12 @@ Ignore: container-build-checks-strict
 Substitute: system-packages:podman podman buildah createrepo_c release-compare container-build-checks-vendor-openSUSE skopeo umoci post-build-checks
 ```
 
-**Repository** named `images` — base images are resolved from `devel:BCI:Tumbleweed/containerfile` (single current version of each → always latest, no `Prefer:` pinning needed), with `openSUSE:Tumbleweed/standard` as a second path. Architectures: `x86_64`, `aarch64`. Project meta:
+**Repository** named `images` — base images resolved from `devel:BCI:Tumbleweed` (single current version of each → always latest, no `Prefer:` pinning needed). Both BCI repos are needed: `containerfile` builds the Dockerfile/BCI images (`golang`, `bci-busybox`), while `images` builds the KIWI base (`opensuse/tumbleweed`). `openSUSE:Tumbleweed/standard` provides RPMs. Architectures: `x86_64`, `aarch64`. Project meta:
 
 ```xml
 <repository name="images">
   <path project="devel:BCI:Tumbleweed" repository="containerfile"/>
+  <path project="devel:BCI:Tumbleweed" repository="images"/>
   <path project="openSUSE:Tumbleweed" repository="standard"/>
   <arch>x86_64</arch>
   <arch>aarch64</arch>
