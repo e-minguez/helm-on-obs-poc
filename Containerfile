@@ -1,6 +1,5 @@
 #!BuildTag: hello-world-go:latest
-FROM opensuse/tumbleweed AS build
-RUN zypper -n in --no-recommends go
+FROM registry.opensuse.org/opensuse/bci/golang:latest AS build
 WORKDIR /src
 COPY app/ ./
 ENV CGO_ENABLED=0 GOPROXY=off
