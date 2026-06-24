@@ -72,7 +72,9 @@ jobs:
             tail -n +2 "$GITHUB_WORKSPACE/Containerfile"
           } > Dockerfile
 
-          cp -r "$GITHUB_WORKSPACE/app" ./app
+          mkdir -p app
+          cp "$GITHUB_WORKSPACE/app/main.go" app/main.go
+          cp "$GITHUB_WORKSPACE/app/go.mod" app/go.mod
 
-          osc add Dockerfile app
+          osc add Dockerfile app/main.go app/go.mod
           osc commit -m "Sync image ${VER}"
