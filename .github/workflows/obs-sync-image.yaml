@@ -67,17 +67,19 @@ jobs:
           osc rm --force ./* 2>/dev/null || true
           rm -rf ./*
 
+          # OBS packages are flat (no subdirectories), so the Go sources live
+          # at the package root and the COPY is rewritten to match.
           {
             echo "#!BuildTag: ${OBS_PACKAGE}:latest ${OBS_PACKAGE}:${VER}"
             tail -n +2 "$GITHUB_WORKSPACE/Containerfile" \
               | sed \
                   -e 's|FROM registry.opensuse.org/opensuse/bci/golang:latest|FROM opensuse/bci/golang:latest|' \
-                  -e 's|FROM registry.opensuse.org/opensuse/busybox:latest|FROM opensuse/bci/bci-busybox:latest|'
+                  -e 's|FROM registry.opensuse.org/opensuse/busybox:latest|FROM opensuse/bci/bci-busybox:latest|' \
+                  -e 's|COPY app/ ./|COPY main.go go.mod ./|'
           } > Dockerfile
 
-          mkdir -p app
-          cp "$GITHUB_WORKSPACE/app/main.go" app/main.go
-          cp "$GITHUB_WORKSPACE/app/go.mod" app/go.mod
+          cp "$GITHUB_WORKSPACE/app/main.go" main.go
+          cp "$GITHUB_WORKSPACE/app/go.mod" go.mod
 
-          osc add Dockerfile app/main.go app/go.mod
+          osc add Dockerfile main.go go.mod
           osc commit -m "Sync image ${VER}"
