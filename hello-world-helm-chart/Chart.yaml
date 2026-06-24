@@ -2,5 +2,5 @@ apiVersion: v2
 name: hello-world-helm-chart
 description: Helm chart deploying a Go hello-world web server
 type: application
-version: 0.2.0
-appVersion: "0.1.0"
+version: 0.2.1
+appVersion: "0.2.6"

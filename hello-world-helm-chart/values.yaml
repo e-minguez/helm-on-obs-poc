@@ -2,7 +2,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/e-minguez/hello-world-go
-  tag: latest
+  # Empty → defaults to the chart's appVersion (the image release).
+  tag: ""
   pullPolicy: IfNotPresent
 
 service:
