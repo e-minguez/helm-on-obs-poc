@@ -11,24 +11,19 @@ Pipeline:
 
 ## Install
 
-From GHCR:
+From GHCR (deploys the GHCR image `ghcr.io/e-minguez/hello-world-go`):
 
 ```sh
-helm install hello oci://ghcr.io/e-minguez/charts/hello-world-helm-chart --version 0.2.0
+helm install hello oci://ghcr.io/e-minguez/charts/hello-world-helm-chart --version 0.2.1
 ```
 
-From the openSUSE registry (built by OBS):
+From the openSUSE registry (built by OBS; this chart variant deploys the OBS image `registry.opensuse.org/home/eminguez/containers/images/hello-world-go`):
 
 ```sh
-helm install hello oci://registry.opensuse.org/home/eminguez/charts/images/hello-world-chart --version 0.2.0
+helm install hello oci://registry.opensuse.org/home/eminguez/charts/images/hello-world-chart --version 0.2.1
 ```
 
-The chart deploys the Go hello-world image. Default image: `ghcr.io/e-minguez/hello-world-go:latest`. To use the OBS-built image:
-
-```sh
-helm install hello oci://ghcr.io/e-minguez/charts/hello-world-helm-chart --version 0.2.0 \
-  --set image.repository=registry.opensuse.org/home/eminguez/containers/images/hello-world-go
-```
+The image tag defaults to the chart's `appVersion` (the hello-world-go release). The only difference between the two chart variants is `image.repository`: the OBS sync rewrites it to the openSUSE registry path. Override either with `--set image.repository=...` / `--set image.tag=...`.
 
 ## Local dev
 
@@ -100,6 +95,17 @@ Substitute: system-packages:podman podman buildah createrepo_c release-compare c
 Published image: `registry.opensuse.org/home/eminguez/containers/images/hello-world-go`. Package: `hello-world-go` (already created).
 
 The OBS build base images differ from GHCR because OBS resolves them from `devel:BCI:Tumbleweed` by short name: the sync workflow rewrites `opensuse/bci/golang:latest` and `opensuse/bci/bci-busybox:latest` into the generated `Dockerfile`, and flattens the Go sources (OBS packages have no subdirectories).
+
+## Releasing
+
+The git tag and the chart version are independent:
+
+1. Bump `hello-world-helm-chart/Chart.yaml`:
+   - `version:` — the chart version. **Must change**, or `obs-sync.yaml` sees the same version on GHCR and OBS and skips the sync.
+   - `appVersion:` — the hello-world-go image tag the chart deploys.
+2. Push a tag: `git tag v0.2.7 && git push origin v0.2.7`.
+
+The tag drives the image build (`hello-world-go:<tag-without-v>`); `appVersion` selects which image tag the chart references. Keep them aligned if you want the chart to deploy the image built by the same release.
 
 ## Required GitHub secrets
 
