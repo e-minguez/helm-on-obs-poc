@@ -20,6 +20,7 @@ jobs:
       OBS_PROJECT: home:eminguez:charts
       OBS_PACKAGE: hello-world-chart
       GHCR_CHART: oci://ghcr.io/e-minguez/charts/hello-world-helm-chart
+      OBS_IMAGE: registry.opensuse.org/home/eminguez/containers/images/hello-world-go
     steps:
       - name: Install tooling
         run: zypper -n in helm osc git grep gawk tar
@@ -83,6 +84,8 @@ jobs:
             echo "#!BuildTag: ${OBS_PACKAGE}:latest ${OBS_PACKAGE}:${UPSTREAM_VER}"
             cat "$src/Chart.yaml"
           } > Chart.yaml
+
+          sed -i "s|repository:.*|repository: ${OBS_IMAGE}|" "$src/values.yaml"
 
           tar -czf chart-assets.tar.gz -C "$src" values.yaml templates
           rm -rf "$src"
