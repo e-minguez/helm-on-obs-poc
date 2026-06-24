@@ -75,11 +75,14 @@ Patterntype: none
 BuildEngine: podman
 %endif
 
-# The Tumbleweed build config pulls in container-build-checks-strict, which
-# treats all warnings (tag namespace, release uniqueness, inherited base-image
-# labels) as fatal. Ignoring it makes those warnings non-fatal so the build of
-# a custom image in a home: project succeeds.
+# devel:BCI:Tumbleweed pulls in container-build-checks-strict via the
+# system-packages:podman substitute, which treats all warnings (tag namespace,
+# release uniqueness, inherited base-image labels) as fatal. Redefining the
+# substitute without it (and ignoring it) makes those warnings non-fatal so a
+# custom image in a home: project builds. Ignore alone is not enough — the
+# package arrives through the substitute, so the substitute must be redefined.
 Ignore: container-build-checks-strict
+Substitute: system-packages:podman podman buildah createrepo_c release-compare container-build-checks-vendor-openSUSE skopeo umoci post-build-checks
 ```
 
 **Repository** named `images` — base images are resolved from `devel:BCI:Tumbleweed/containerfile` (single current version of each → always latest, no `Prefer:` pinning needed), with `openSUSE:Tumbleweed/standard` as a second path. Architectures: `x86_64`, `aarch64`. Project meta:
