@@ -63,15 +63,39 @@ Required: perl-YAML-LibYAML
 
 ## OBS container image project setup
 
-The `home:eminguez:containers` project needs container build support:
+The `home:eminguez:containers` project needs container build support.
 
 **Project config** (`osc meta -e prjconf home:eminguez:containers`):
 
 ```
+%if "%_repository" == "images"
 Type: docker
+Repotype: none
+Patterntype: none
+BuildEngine: podman
+%endif
+
+# The Tumbleweed build config pulls in container-build-checks-strict, which
+# treats all warnings (tag namespace, release uniqueness, inherited base-image
+# labels) as fatal. Ignoring it makes those warnings non-fatal so the build of
+# a custom image in a home: project succeeds.
+Ignore: container-build-checks-strict
 ```
 
-**Repository** named `images` — Tumbleweed/standard with a container build target (`BuildEngine: podman`). Published image: `registry.opensuse.org/home/eminguez/containers/images/hello-world-go`. Package: `hello-world-go` (already created).
+**Repository** named `images` — base images are resolved from `devel:BCI:Tumbleweed/containerfile` (single current version of each → always latest, no `Prefer:` pinning needed), with `openSUSE:Tumbleweed/standard` as a second path. Architectures: `x86_64`, `aarch64`. Project meta:
+
+```xml
+<repository name="images">
+  <path project="devel:BCI:Tumbleweed" repository="containerfile"/>
+  <path project="openSUSE:Tumbleweed" repository="standard"/>
+  <arch>x86_64</arch>
+  <arch>aarch64</arch>
+</repository>
+```
+
+Published image: `registry.opensuse.org/home/eminguez/containers/images/hello-world-go`. Package: `hello-world-go` (already created).
+
+The OBS build base images differ from GHCR because OBS resolves them from `devel:BCI:Tumbleweed` by short name: the sync workflow rewrites `opensuse/bci/golang:latest` and `opensuse/bci/bci-busybox:latest` into the generated `Dockerfile`, and flattens the Go sources (OBS packages have no subdirectories).
 
 ## Required GitHub secrets
 
