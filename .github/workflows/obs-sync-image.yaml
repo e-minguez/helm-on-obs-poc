@@ -72,7 +72,7 @@ jobs:
             tail -n +2 "$GITHUB_WORKSPACE/Containerfile" \
               | sed \
                   -e 's|FROM registry.opensuse.org/opensuse/bci/golang:latest|FROM opensuse/bci/golang:latest|' \
-                  -e 's|FROM registry.opensuse.org/opensuse/busybox:latest|FROM opensuse/busybox|'
+                  -e 's|FROM registry.opensuse.org/opensuse/busybox:latest|FROM opensuse/bci/bci-busybox:latest|'
           } > Dockerfile
 
           mkdir -p app
