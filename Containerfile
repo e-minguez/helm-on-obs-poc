@@ -6,7 +6,7 @@ COPY app/ ./
 ENV CGO_ENABLED=0 GOPROXY=off
 RUN go build -o /hello-world .
 
-FROM opensuse/busybox
+FROM registry.opensuse.org/opensuse/busybox:latest
 COPY --from=build /hello-world /hello-world
 EXPOSE 8080
 USER 1000

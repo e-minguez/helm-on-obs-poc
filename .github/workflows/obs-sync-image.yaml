@@ -69,7 +69,8 @@ jobs:
 
           {
             echo "#!BuildTag: ${OBS_PACKAGE}:latest ${OBS_PACKAGE}:${VER}"
-            tail -n +2 "$GITHUB_WORKSPACE/Containerfile"
+            tail -n +2 "$GITHUB_WORKSPACE/Containerfile" \
+              | sed 's|FROM registry.opensuse.org/opensuse/busybox:latest|FROM opensuse/busybox|'
           } > Dockerfile
 
           mkdir -p app
